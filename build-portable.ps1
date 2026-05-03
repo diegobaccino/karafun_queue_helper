@@ -109,7 +109,8 @@ if (-not $npmCheck) {
 # Check if node_modules exists
 if (-not (Test-Path node_modules)) {
     Write-Host "[1/3] Installing dependencies..." -ForegroundColor Yellow
-    npm install
+    Write-Host "This may take a few minutes on first run." -ForegroundColor DarkYellow
+    npm install --no-audit --no-fund --no-progress --loglevel=warn
     if ($LASTEXITCODE -ne 0) {
         Write-Host "[!] Error: npm install failed" -ForegroundColor Red
         Write-Host "Please check your internet connection and try again." -ForegroundColor Yellow

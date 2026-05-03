@@ -35,7 +35,8 @@ echo.
 REM Install dependencies if needed
 if not exist node_modules (
     echo [1/3] Installing dependencies...
-    call npm install
+    echo This may take a few minutes on first run.
+    call npm install --no-audit --no-fund --no-progress --loglevel=warn
     if errorlevel 1 (
         echo [!] Error: npm install failed
         echo Please check your internet connection and try again.

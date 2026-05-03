@@ -51,27 +51,30 @@ body {
 /* ===== HEADER ===== */
 .header {
   background: var(--gradient-primary);
-  padding: 20px;
+  padding: 14px 16px;
   border-bottom: 4px solid var(--secondary);
   box-shadow: 0 8px 24px rgba(255, 20, 147, 0.3);
 }
 
 .header-content {
   display: flex;
+  align-items: stretch;
+  gap: 14px;
   justify-content: space-between;
-  align-items: center;
-  gap: 20px;
 }
 
 .qr-section {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  justify-content: center;
+  gap: 8px;
   background: rgba(255, 255, 255, 0.1);
-  padding: 15px 20px;
+  padding: 12px;
   border-radius: 12px;
   backdrop-filter: blur(10px);
+  width: 176px;
+  flex-shrink: 0;
 }
 
 .qr-section h2 {
@@ -85,15 +88,15 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-width: 150px;
-  min-height: 150px;
+  min-width: 120px;
+  min-height: 120px;
 }
 
 .qr-image {
-  width: 150px;
-  height: 150px;
+  width: 120px;
+  height: 120px;
   background: white;
-  padding: 8px;
+  padding: 6px;
   border-radius: 8px;
   filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
 }
@@ -105,38 +108,127 @@ body {
   letter-spacing: 0.5px;
 }
 
-.header-title {
-  flex: 1;
-  text-align: center;
+.session-line {
+  font-size: 0.82rem;
+  font-weight: 600;
+  margin-top: 4px;
 }
 
-.header-title h1 {
-  font-size: 2.5rem;
+.session-button {
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--text-primary);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 0.78rem;
   font-weight: 700;
-  margin-bottom: 5px;
-  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-  letter-spacing: 2px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-.hint {
+.session-button:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-1px);
+}
+
+.session-modal {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.session-modal.hidden {
+  display: none;
+}
+
+.session-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+}
+
+.session-modal-content {
+  position: relative;
+  width: min(520px, 92vw);
+  background: linear-gradient(160deg, #161a33 0%, #10152b 100%);
+  border: 2px solid var(--accent-light);
+  border-radius: 14px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+  padding: 22px;
+}
+
+.session-modal-content h2 {
+  font-size: 1.25rem;
+  margin-bottom: 14px;
+}
+
+.session-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.session-form label {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.session-form input {
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-primary);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 0.95rem;
+}
+
+.session-form input:focus {
+  outline: 2px solid var(--secondary);
+  border-color: transparent;
+}
+
+.session-modal-actions {
+  margin-top: 8px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.session-button-primary,
+.session-button-secondary {
+  border: 0;
+  border-radius: 8px;
+  padding: 10px 14px;
   font-size: 0.85rem;
-  opacity: 0.95;
-  font-style: italic;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  font-weight: 700;
+  cursor: pointer;
 }
 
-/* ===== CURRENT SONG SECTION ===== */
-.current-song-section {
-  padding: 30px 20px;
-  background: linear-gradient(180deg, var(--dark-bg-light) 0%, var(--dark-bg) 100%);
-  border-bottom: 3px solid var(--secondary);
+.session-button-primary {
+  background: var(--gradient-primary);
+  color: var(--text-primary);
+}
+
+.session-button-secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
 }
 
 .current-song {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 30px;
+  gap: 18px;
+  flex: 1;
   background: var(--gradient-secondary);
-  padding: 25px;
+  padding: 18px 18px 16px;
   border-radius: 16px;
   box-shadow: 0 12px 32px rgba(255, 20, 147, 0.2), 0 0 40px rgba(0, 212, 255, 0.1);
   border: 2px solid rgba(255, 255, 255, 0.2);
@@ -154,8 +246,8 @@ body {
 
 .current-label {
   position: absolute;
-  top: 10px;
-  left: 25px;
+  top: 8px;
+  left: 16px;
   font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -167,13 +259,13 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-width: 200px;
-  min-height: 200px;
+  min-width: 132px;
+  min-height: 132px;
 }
 
 .album-cover {
-  width: 200px;
-  height: 200px;
+  width: 132px;
+  height: 132px;
   border-radius: 12px;
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
   border: 3px solid rgba(255, 255, 255, 0.3);
@@ -182,13 +274,13 @@ body {
 
 .current-info {
   flex: 1;
-  padding: 10px 0;
+  padding: 20px 0 6px;
 }
 
 .current-info h2 {
-  font-size: 2rem;
+  font-size: 2.15rem;
   font-weight: 700;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   line-height: 1.2;
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
@@ -438,36 +530,68 @@ body {
 
 /* ===== RESPONSIVE ===== */
 @media (max-width: 1080px) {
+  .header {
+    padding: 12px;
+  }
+
   .header-content {
-    flex-direction: column;
+    flex-direction: row;
+    align-items: stretch;
+  }
+
+  .qr-section {
+    width: 168px;
   }
 
   .current-song {
-    flex-direction: column;
-    text-align: center;
+    flex-direction: row;
+    text-align: left;
+    gap: 14px;
+    padding: 16px 14px 14px;
+  }
+
+  .current-info {
+    padding: 18px 0 6px;
   }
 
   .current-album {
-    min-width: 160px;
-    min-height: 160px;
+    min-width: 104px;
+    min-height: 104px;
   }
 
   .album-cover {
-    width: 160px;
-    height: 160px;
+    width: 104px;
+    height: 104px;
   }
 
   .current-info h2 {
-    font-size: 1.5rem;
+    font-size: 1.7rem;
   }
 
   .queue-item {
     flex-wrap: wrap;
   }
 
-  .header-title h1 {
-    font-size: 1.8rem;
+
+@media (max-width: 760px) {
+  .header-content {
+    flex-direction: column;
   }
+
+  .qr-section {
+    width: 100%;
+  }
+
+  .current-song {
+    flex-direction: column;
+    text-align: center;
+    padding-top: 28px;
+  }
+
+  .current-info {
+    padding: 8px 0 4px;
+  }
+}
 }
 
 /* ===== ANIMATIONS ===== */

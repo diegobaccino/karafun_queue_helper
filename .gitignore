@@ -13,6 +13,16 @@ dist/
 build/
 out/
 release/
+portable/win-unpacked/
+portable/*.exe
+portable/*.7z
+portable/builder-debug.yml
+portable/builder-effective-config.yaml
+portable/_probe.txt
+portable_clean_*/
+portable_final/
+portable_new/
+portable_new2/
 
 # IDE
 .vscode/
@@ -29,3 +39,5 @@ electron-builder-effective-config.yaml
 *.tmp
 *.bak
 .cache/
+kf_bundle.js
+tmp-kf-scan.js

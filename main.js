@@ -1,8 +1,7 @@
-const { app, BrowserWindow, Menu } = require('electron');
+const { app, BrowserWindow } = require('electron');
 const path = require('path');
 
 let mainWindow;
-let isFullscreen = false;
 
 function createWindow() {
   // Create the browser window
@@ -18,23 +17,29 @@ function createWindow() {
     icon: path.join(__dirname, 'assets', 'icon.png') // Optional icon
   });
 
+  mainWindow.setMenuBarVisibility(true);
+  mainWindow.setAutoHideMenuBar(false);
+
   // Load the app
   mainWindow.loadFile('index.html');
 
-  // Handle right-click for fullscreen toggle
-  mainWindow.webContents.on('context-menu', (e) => {
-    e.preventDefault();
-    toggleFullscreen();
+  mainWindow.on('enter-full-screen', () => {
+    mainWindow.setMenuBarVisibility(false);
+    mainWindow.setAutoHideMenuBar(true);
+    mainWindow.webContents.send('fullscreen-toggled', true);
   });
 
-  mainWindow.webContents.openDevTools();
+  mainWindow.on('leave-full-screen', () => {
+    mainWindow.setAutoHideMenuBar(false);
+    mainWindow.setMenuBarVisibility(true);
+    mainWindow.webContents.send('fullscreen-toggled', false);
+  });
+
 }
 
 function toggleFullscreen() {
   if (mainWindow) {
-    isFullscreen = !isFullscreen;
-    mainWindow.setFullScreen(isFullscreen);
-    mainWindow.webContents.send('fullscreen-toggled', isFullscreen);
+    mainWindow.setFullScreen(!mainWindow.isFullScreen());
   }
 }
 

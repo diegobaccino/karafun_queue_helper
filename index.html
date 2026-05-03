@@ -8,32 +8,27 @@
 </head>
 <body>
   <div class="container">
-    <!-- Header with QR Code -->
+    <!-- Top row: QR + current song -->
     <div class="header">
       <div class="header-content">
+        <div id="current-song" class="current-song">
+          <div class="current-label">Now Playing</div>
+          <div class="current-album">
+            <img id="current-cover" src="" alt="Album Cover" class="album-cover">
+          </div>
+          <div class="current-info">
+            <h2 id="current-title">Waiting for queue...</h2>
+            <p id="current-artist" class="artist"></p>
+            <p id="current-singer" class="singer"></p>
+          </div>
+        </div>
+
         <div class="qr-section">
-          <h2>Join Karaoke</h2>
+          <h2>Ready to Sing?</h2>
           <div id="qr-code"></div>
           <p class="qr-hint">Scan to join</p>
-        </div>
-        <div class="header-title">
-          <h1>🎤 KaraFun Queue</h1>
-          <p class="hint">Right-click to toggle fullscreen</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Current Song Section -->
-    <div class="current-song-section">
-      <div id="current-song" class="current-song">
-        <div class="current-label">Now Playing</div>
-        <div class="current-album">
-          <img id="current-cover" src="" alt="Album Cover" class="album-cover">
-        </div>
-        <div class="current-info">
-          <h2 id="current-title">Waiting for queue...</h2>
-          <p id="current-artist" class="artist"></p>
-          <p id="current-singer" class="singer"></p>
+          <p class="session-line">Session: <span id="session-id">Not connected</span></p>
+          <button id="change-session" class="session-button" type="button">Change Session</button>
         </div>
       </div>
     </div>
@@ -53,6 +48,25 @@
     <div class="footer">
       <span id="status" class="status">Connecting...</span>
       <span id="time" class="time"></span>
+    </div>
+  </div>
+
+  <div id="session-modal" class="session-modal hidden" aria-hidden="true">
+    <div class="session-modal-backdrop" data-close-modal="true"></div>
+    <div class="session-modal-content" role="dialog" aria-modal="true" aria-labelledby="session-modal-title">
+      <h2 id="session-modal-title">Connect to KaraFun Session</h2>
+      <form id="session-form" class="session-form">
+        <label for="session-input">Session ID or URL</label>
+        <input id="session-input" type="text" maxlength="120" placeholder="272367 or https://www.karafun.com/272367/" required>
+
+        <label for="nickname-input">Nickname</label>
+        <input id="nickname-input" type="text" maxlength="16" placeholder="QueueAdmin" required>
+
+        <div class="session-modal-actions">
+          <button id="cancel-session" type="button" class="session-button-secondary">Cancel</button>
+          <button type="submit" class="session-button-primary">Connect</button>
+        </div>
+      </form>
     </div>
   </div>
 

@@ -1,255 +1,57 @@
-# Pre-Launch Checklist
+# Go-Live Checklist
 
-Use this checklist before running the KaraFun Queue Display app.
+Use this checklist before running KaraFun Queue Display at an event or venue.
 
-## ✅ System Setup
+## Environment
 
-- [ ] Node.js installed (v14+)
-  ```bash
-  node --version  # Should show v14.0.0 or higher
-  ```
+- [ ] Target machine is Windows 10/11
+- [ ] Internet connection is stable
+- [ ] Display orientation is portrait (or intended orientation)
+- [ ] Power/sleep settings prevent standby during event hours
 
-- [ ] npm installed
-  ```bash
-  npm --version  # Should show 6.0.0 or higher
-  ```
+## Application Readiness
 
-- [ ] Project dependencies installed
-  ```bash
-  npm install
-  ```
+- [ ] Dependencies installed (`npm install`) on build machine
+- [ ] App launches (`npm start`) without startup errors
+- [ ] Portable EXE built if deploying without Node.js
+- [ ] Correct EXE copied to target machine
 
-- [ ] Network connectivity verified
-  ```bash
-  ping YOUR_KARAFUN_IP
-  ```
+## Session Connection
 
-## ✅ Configuration
+- [ ] Session modal opens as expected
+- [ ] Session ID or URL is accepted
+- [ ] Nickname is accepted
+- [ ] Status reaches connected/session-joined/live-queue state
 
-- [ ] **API Base URL configured** - Edit `renderer.js` line 6
-  ```javascript
-  const API_BASE_URL = 'http://YOUR_KARAFUN_IP:8080';
-  ```
-  - [ ] Replaced `YOUR_KARAFUN_IP` with actual IP
-  - [ ] Format is correct: `http://` not `https://`
-  - [ ] Port is correct: `:8080`
+## Display Validation
 
-- [ ] KaraFun server is accessible
-  ```bash
-  curl http://YOUR_KARAFUN_IP:8080/remote/queue
-  # Should return JSON, not error
-  ```
+- [ ] Current song card renders correctly
+- [ ] Queue list updates when songs are added/removed
+- [ ] Cover art loads where metadata is available
+- [ ] QR code opens the same active session on a phone
+- [ ] Right-click toggles fullscreen correctly
 
-- [ ] KaraFun Remote API is enabled
-  - [ ] Check KaraFun settings
-  - [ ] API port 8080 is open
-  - [ ] Both machines on same network
+## Reliability Checks
 
-## ✅ Application Files
+- [ ] App remains connected for at least 10 minutes
+- [ ] Reconnect path works via Change Session
+- [ ] App recovers after restart
 
-Verify all files exist:
+## Deployment Hardening
 
-- [ ] `main.js` - Electron main process
-- [ ] `renderer.js` - UI and API logic
-- [ ] `index.html` - Page structure
-- [ ] `style.css` - Styling
-- [ ] `preload.js` - IPC security
-- [ ] `package.json` - Dependencies
+- [ ] Startup shortcut configured (`shell:startup`) if required
+- [ ] Kiosk user account is configured
+- [ ] Unnecessary desktop apps/notifications are disabled
 
-## ✅ Display Setup
+## Event-Day Fallback Plan
 
-- [ ] Monitor is properly oriented
-  - [ ] Vertical (1080x1920) or rotated
-  - [ ] Windows Display Settings adjusted
+- [ ] Keyboard/mouse accessible for quick recovery
+- [ ] Operator knows reconnect steps
+- [ ] Latest known-good EXE is backed up locally
 
-- [ ] Resolution set correctly
-  - [ ] 1080x1920 for standard
-  - [ ] Or native vertical resolution
+## Quick Recovery Steps
 
-- [ ] No external monitors if fullscreen intended
-  - [ ] Or configure for correct display
-
-## ✅ Testing Before Launch
-
-Run these tests in order:
-
-### Test 1: Dependencies
-```bash
-npm list  # Should show all dependencies installed
-```
-- [ ] No errors in output
-- [ ] All dependencies present
-
-### Test 2: Launch App
-```bash
-npm start
-```
-- [ ] Window opens
-- [ ] No crash on startup
-- [ ] Window is proper size
-
-### Test 3: API Connection
-Once app is running:
-- [ ] Status shows "Connected" (bottom left)
-- [ ] Queue loads within 5 seconds
-- [ ] Songs display with titles and artists
-
-### Test 4: UI Rendering
-- [ ] Current song displays clearly
-- [ ] Album covers visible (or music note icons)
-- [ ] Queue items numbered and readable
-- [ ] QR code visible in top-left
-- [ ] Text is large enough to read
-
-### Test 5: Auto-Update
-- [ ] Queue refreshes every 3-5 seconds
-- [ ] Changes in queue are reflected
-- [ ] No visual glitches during updates
-
-### Test 6: Fullscreen Toggle
-- [ ] Right-click the app
-- [ ] App enters fullscreen mode
-- [ ] Right-click again
-- [ ] Returns to windowed mode
-
-### Test 7: Scrolling (if needed)
-- [ ] Mouse wheel scrolls queue
-- [ ] Touch scroll works (if touchscreen)
-- [ ] Scrollbar visible if needed
-- [ ] Smooth scrolling
-
-## ✅ Keyboard Shortcuts
-
-Test these work:
-- [ ] F12 - Developer tools open/close
-- [ ] Alt+F4 - Close app
-- [ ] F11 - Fullscreen (may not work due to Electron)
-
-## ✅ Network Stability
-
-- [ ] Connection remains stable for 5+ minutes
-- [ ] No repeated "Connection Error" messages
-- [ ] Queue updates consistently
-
-## ✅ Performance
-
-- [ ] App uses < 300MB RAM
-  - [ ] Check in Task Manager
-  - [ ] Ctrl+Shift+Esc → Find "KaraFun"
-
-- [ ] CPU usage < 5% idle
-- [ ] No freezing or stuttering
-- [ ] Smooth animations
-
-## ✅ Error Handling
-
-Test error scenarios:
-- [ ] Disconnect network - shows error
-- [ ] Reconnect network - recovers to "Connected"
-- [ ] Empty queue - displays appropriately
-- [ ] Stop KaraFun - shows "Connection Error"
-- [ ] No covers - shows music note icon
-
-## ✅ Audio (Optional)
-
-If adding audio later:
-- [ ] Speakers/headphones connected
-- [ ] Volume at appropriate level
-- [ ] Audio doesn't interfere with display
-
-## 🚀 Ready for Production?
-
-Final checklist before deployment to kiosk:
-
-- [ ] All configuration verified
-- [ ] API URL correct for production server
-- [ ] Connection test passed
-- [ ] Display properly oriented
-- [ ] All features working as expected
-- [ ] Performance acceptable
-- [ ] Error handling works
-
-## 📋 Deployment Checklist
-
-Before going live on kiosk machine:
-
-- [ ] Executable built (if using standalone)
-- [ ] Configuration updated for target server
-- [ ] Network connectivity verified on kiosk machine
-- [ ] Display resolution correct
-- [ ] Auto-start configured (optional)
-- [ ] Dev tools disabled (optional)
-- [ ] Tested for at least 30 minutes
-
-## 🔄 Post-Launch Verification
-
-After deploying:
-
-- [ ] App running on kiosk machine
-- [ ] Displaying live queue correctly
-- [ ] Updates happening in real-time
-- [ ] QR code working for users to join
-- [ ] No error messages on screen
-- [ ] Performance stable over time
-
-## 📝 Notes
-
-Use this space to record your setup:
-
-```
-Date: ________________
-KaraFun Server IP: ________________
-KaraFun Server Name: ________________
-Monitor Size: ________________
-Network Type: ________________
-Notes: 
-_________________________________
-_________________________________
-```
-
-## ❌ Troubleshooting Checklist
-
-If something doesn't work:
-
-1. [ ] Verify API URL is correct
-   ```bash
-   curl http://YOUR_IP:8080/remote/queue
-   ```
-
-2. [ ] Check network connectivity
-   ```bash
-   ping YOUR_IP
-   ```
-
-3. [ ] Verify KaraFun is running
-   - [ ] Check KaraFun application is open
-   - [ ] Check Remote API is enabled
-
-4. [ ] Review console errors
-   - [ ] Press F12
-   - [ ] Click Console tab
-   - [ ] Look for red error messages
-
-5. [ ] Check firewall
-   - [ ] Windows Defender may block port 8080
-   - [ ] Add exception for KaraFun server
-
-6. [ ] Restart app
-   - [ ] Close completely
-   - [ ] Reopen with `npm start`
-
-7. [ ] Restart KaraFun server
-   - [ ] Close KaraFun
-   - [ ] Wait 10 seconds
-   - [ ] Reopen KaraFun
-
-8. [ ] Check documentation
-   - [ ] README.md
-   - [ ] SETUP.md
-   - [ ] API.md
-
----
-
-**Checklist Created:** [Date]  
-**Verified By:** [Your Name]  
-**Status:** ☐ Ready ☐ Issues Found (see notes)
+1. Use Change Session.
+2. Re-enter session ID/URL.
+3. Check internet connectivity.
+4. Restart app if queue still does not update.

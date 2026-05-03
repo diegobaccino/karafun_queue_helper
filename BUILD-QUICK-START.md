@@ -1,5 +1,8 @@
 # 🔨 Building Your Portable Executable - Quick Start
 
+> Status: Historical quick guide. Build commands are still useful, but runtime configuration sections may be outdated.
+> For current session connection behavior, see README.md and API.md.
+
 This guide will walk you through building a standalone `.exe` file from the KaraFun Queue Display app in **5 minutes**.
 
 ## What You Need

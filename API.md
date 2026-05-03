@@ -1,220 +1,81 @@
-# KaraFun API Documentation
+# API and Protocol Notes
 
-This document describes the KaraFun Remote API endpoints used by the Queue Display app.
+This project follows KaraFun web session behavior.
 
-## Base URL
+It does not use a local 8080 API, polling loop, or Socket.IO client library.
 
-```
-http://<KARAFUN_SERVER_IP>:8080
-```
+## Session Input
 
-Replace `<KARAFUN_SERVER_IP>` with the IP address of your KaraFun machine.
+Accepted user input:
 
-## Endpoints
+- Numeric session ID (4-10 digits)
+- Full KaraFun session URL
 
-### 1. Get Queue
+Parsing helper: parseSessionId in renderer.js
 
-**Endpoint:** `GET /remote/queue`
+## Session Bootstrap
 
-**Description:** Retrieves the current song and upcoming queue.
+1. GET https://www.karafun.com/<session>/
+2. Extract Settings = {...}; from HTML
+3. Parse JSON and use Settings.kcs_url as the WebSocket endpoint
 
-**Request:**
-```bash
-curl http://192.168.1.100:8080/remote/queue
-```
+If Settings.kcs_url is missing, connection cannot continue.
 
-**Response Format:**
-```json
-{
-  "current": {
-    "id": "12345",
-    "title": "Song Title",
-    "artist": "Artist Name",
-    "album": "Album Name",
-    "singer": "Singer Name",
-    "addedBy": "Person Who Added It",
-    "cover": "http://url-to-cover.jpg",
-    "coverUrl": "http://url-to-cover.jpg",
-    "duration": 180,
-    "position": 45,
-    "key": "C",
-    "year": 2020
-  },
-  "queue": [
-    {
-      "id": "12346",
-      "title": "Next Song",
-      "artist": "Artist Name",
-      "album": "Album Name",
-      "singer": "Singer Name",
-      "addedBy": "Another Person",
-      "cover": "http://url-to-cover.jpg",
-      "duration": 200
-    },
-    {
-      "id": "12347",
-      "title": "Third Song",
-      "artist": "Artist Name",
-      "singer": "Someone Else",
-      "addedBy": "Another Person",
-      "cover": "http://url-to-cover.jpg"
-    }
-  ]
-}
-```
+## WebSocket Transport
 
-**Response Fields:**
+- URL: Settings.kcs_url
+- Subprotocol: kcpj~v2+emuping
+- Message format: JSON { id, type, payload }
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `current` | Object | Currently playing song |
-| `current.id` | String | Unique song ID |
-| `current.title` | String | Song title |
-| `current.artist` | String | Artist/performer name |
-| `current.album` | String | Album name |
-| `current.singer` | String | Name of person singing |
-| `current.addedBy` | String | Name of person who added to queue |
-| `current.cover` | String | URL to album cover image |
-| `current.coverUrl` | String | Alternative cover URL (use if cover is null) |
-| `current.duration` | Number | Song duration in seconds |
-| `current.position` | Number | Current playback position in seconds |
-| `current.key` | String | Musical key (e.g., "C", "G#") |
-| `current.year` | Number | Year song was released |
-| `queue` | Array | Array of upcoming songs |
-| `queue[].id` | String | Song ID |
-| `queue[].title` | String | Song title |
-| `queue[].artist` | String | Artist name |
-| `queue[].album` | String | Album name (optional) |
-| `queue[].singer` | String | Singer name |
-| `queue[].addedBy` | String | Person who added it |
-| `queue[].cover` | String | Cover image URL |
-| `queue[].duration` | Number | Song duration in seconds |
+### Required handshake/runtime behavior
 
-### 2. Get Session Info
+- On open: send remote.UpdateUsernameRequest
+- On core.PingRequest: send core.PingResponse with same id
+- Queue updates come through remote.QueueEvent
+- Session state updates come through remote.StatusEvent
 
-**Endpoint:** `GET /remote/session`
+## Queue Normalization
 
-**Description:** Retrieves session information including join URLs.
-
-**Response Format:**
-```json
-{
-  "id": "session-123",
-  "name": "My Karaoke Party",
-  "port": 8080,
-  "sessionCode": "ABC123",
-  "joinUrl": "http://192.168.1.100:8080/remote",
-  "qrCode": "..."
-}
-```
-
-## Expected Data Structure in App
-
-The app expects the `/remote/queue` endpoint to return at minimum:
+Raw queue items are normalized to:
 
 ```json
 {
-  "current": {
-    "title": "Current Song Title",
-    "artist": "Artist Name",
-    "singer": "Singer Name",
-    "cover": "http://path-to-image.jpg"
-  },
-  "queue": [
-    {
-      "title": "Song 1",
-      "artist": "Artist 1",
-      "singer": "Singer 1",
-      "addedBy": "User 1",
-      "cover": "http://path-to-image.jpg"
-    }
-  ]
+  "id": "string",
+  "title": "string",
+  "artist": "string",
+  "singer": "string",
+  "coverUrl": "string"
 }
 ```
 
-## Fallback Behavior
+Notes:
 
-The app handles missing fields gracefully:
+- singer is best-effort based on available fields in events
+- missing singer values are hidden in UI
 
-| Missing Field | Fallback |
-|---------------|----------|
-| `current.cover` | Music note icon (♪) |
-| `current.artist` | Empty string |
-| `current.singer` | "Unknown" |
-| `queue[].cover` | Music note icon (♪) |
-| `queue[].artist` | Empty string |
-| `queue[].addedBy` | Empty string |
+## Artwork Hydration
 
-## Testing the API
+Queue events alone may not include reliable artwork URLs.
 
-### Using cURL
-```bash
-# Test connection
-curl -v http://192.168.1.100:8080/remote/queue
+The app requests artwork details via:
 
-# Pretty-print response (on Windows with jq installed)
-curl http://192.168.1.100:8080/remote/queue | jq .
-```
+- Method: POST
+- URL: https://www.karafun.com/<session>/?type=queueData
+- Body: FormData with keys songIds, quizIds, communityIds
 
-### Using Browser
-Visit: `http://192.168.1.100:8080/remote/queue` in your web browser
+Expected response: array entries with songId and img.
 
-### Using the App
-1. Check the status bar (bottom of window)
-2. If it says "Connected", the API is working
-3. Check Developer Tools (F12 → Console) for errors
+The app maps img by songId and re-renders queue/current card when updates arrive.
 
-## Common Issues
+## Error States
 
-### 404 Not Found
-- API endpoint doesn't exist
-- KaraFun version might not support Remote API
-- Check KaraFun is running and accessible
+- Invalid session input: prompt user to correct ID/URL
+- Session page fetch fails: show HTTP error state
+- Missing kcs_url: stop with status message
+- WebSocket close/error: show disconnected/error status
+- Artwork fetch failure: ignored (non-fatal)
 
-### Connection Refused
-- KaraFun server not running
-- Wrong IP address
-- Port 8080 is blocked by firewall
+## Legacy Note
 
-### Invalid JSON Response
-- Server returned HTML error page instead of JSON
-- Check KaraFun error logs
-- Verify API endpoint is correct
-
-### Missing Album Covers
-- Covers are optional in API
-- App displays music note placeholder
-- Ensure KaraFun has covers configured
-
-## CORS Headers
-
-If accessing from a different origin, ensure your KaraFun server includes:
-```
-Access-Control-Allow-Origin: *
-```
-
-## API Response Times
-
-- Expected response time: < 100ms
-- Polling interval in app: 3000ms (configurable)
-- Recommended: Keep polling interval ≥ 2000ms to avoid server load
-
-## Future Endpoints (Not Yet Implemented)
-
-These endpoints may be available in future KaraFun versions:
-
-- `GET /remote/session` - Session information
-- `GET /remote/history` - Historical songs played
-- `POST /remote/queue` - Add songs to queue
-- `DELETE /remote/queue/:id` - Remove songs
-- `PUT /remote/queue/:id` - Update song
-
-## Version Compatibility
-
-This app is designed for KaraFun Remote API v1.x
-
-For API version compatibility, check your KaraFun installation for version information.
-
----
-
-**Last Updated:** May 2026
+Older documents in this repo may still mention localhost :8080 endpoints.
+Those are historical and are not used by the current implementation.

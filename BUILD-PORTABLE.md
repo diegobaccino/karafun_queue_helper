@@ -1,5 +1,8 @@
 # Building a Portable Executable
 
+> Status: Historical guide. Some sections reference pre-v1 localhost API configuration.
+> For current runtime architecture and startup flow, use README.md, SETUP.md, and API.md first.
+
 This guide explains how to build a standalone `.exe` file from the KaraFun Queue Display app that can be run on any Windows machine without needing Node.js or npm installed.
 
 ## Prerequisites

@@ -1,5 +1,8 @@
 # Build System - Complete Setup
 
+> Status: Historical build-system overview. Keep for reference; runtime integration details may be outdated.
+> Read README.md and API.md for the current connection model.
+
 Your KaraFun Queue Display now includes a complete build system for creating portable Windows executables.
 
 ## What's New

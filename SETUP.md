@@ -1,132 +1,85 @@
-# Quick Start Guide
+# Setup Guide
 
-## 🚀 Getting Started in 5 Minutes
+This guide gets you from clone to running display.
 
-### 1. Install Dependencies
+## 1. Prerequisites
+
+- Windows 10/11
+- Node.js 18+
+- npm (included with Node.js)
+
+## 2. Install Dependencies
+
 ```bash
 npm install
 ```
 
-### 2. Configure Your KaraFun Server IP
-Open `renderer.js` and find line 6:
-```javascript
-const API_BASE_URL = 'http://localhost:8080';
-```
+## 3. Start the App
 
-Replace `localhost` with your KaraFun machine's IP address:
-```javascript
-const API_BASE_URL = 'http://192.168.1.100:8080'; // Your actual IP
-```
-
-### 3. Run the App
 ```bash
 npm start
 ```
 
-The app will launch in a window.
+## 4. Join a Session
 
-### 4. Test It
-- Queue should load within a few seconds
-- You should see a "Connected" status at the bottom
-- QR code should display in the top-left
+On first launch, the app prompts for:
 
-## 🖥️ Using the App
+- Session ID or KaraFun URL
+- Nickname for the display client
 
-### Toggle Fullscreen
-**Right-click anywhere** in the app to toggle fullscreen/window mode.
+Examples:
 
-### Understanding the Display
+- 272367
+- https://www.karafun.com/272367/
 
-**Top Section (Header):**
-- QR code to join the session
-- Title
+## 5. Verify Live Data
 
-**Middle Section (Current Song):**
-- Album artwork
-- Song title, artist, singer name
-- This is the song currently being sung
+Expected behavior after connecting:
 
-**Queue Section:**
-- Numbered list of upcoming songs
-- Each shows: song title, artist, who added it, album art
-- If more than 8 songs, shows "+X more songs in queue"
+- Status changes to connected/session joined
+- Current song card updates when queue changes
+- Upcoming queue list refreshes live
+- QR code points to the same session URL
 
-**Bottom (Status):**
-- Connection status (green = connected)
-- Current time
+## Fullscreen and Display
 
-## 🔧 Common Configuration Changes
+- Right-click to toggle fullscreen/windowed mode
+- Entering fullscreen hides menu bar
+- Leaving fullscreen restores menu bar
 
-### Change How Often It Updates
-In `renderer.js`, find line 7:
-```javascript
-const POLL_INTERVAL = 3000; // 3 seconds
-```
-Change to:
-- 5000 for 5-second updates (less network traffic)
-- 1000 for 1-second updates (more responsive)
+## Troubleshooting
 
-### Change Maximum Queue Display
-In `renderer.js`, find line 8:
-```javascript
-const MAX_QUEUE_ITEMS = 8; // Show 8 songs max
-```
-Change to show more or fewer songs.
+### Invalid session ID or URL
 
-## 🔗 Finding Your KaraFun Server IP
+- Use numeric ID or full KaraFun URL
+- Remove extra spaces
 
-**On the KaraFun machine:**
-1. Check the Network settings
-2. Look for the IP address (usually starts with 192.168 or 10.x)
+### Fails to connect
 
-**From another computer:**
-1. Open Command Prompt
-2. Run: `ipconfig` (Windows) or `ifconfig` (Mac/Linux)
-3. Find KaraFun machine in your network
+- Check internet access
+- Verify session is active in KaraFun
+- Try reconnecting with Change Session
 
-## ❌ Troubleshooting
+### Connected but no songs show
 
-### "Connection Error" status
-- ❌ Check IP address is correct
-- ❌ Verify KaraFun app is running
-- ❌ Ensure both computers are on same network
+- Queue may be empty
+- Add songs from a client and wait for QueueEvent
 
-### Queue shows "Loading queue..." forever
-- ❌ Verify the IP address in `renderer.js`
-- ❌ Open Developer Tools (F12) and check console for errors
-- ❌ Try accessing `http://YOUR_IP:8080/remote/queue` directly in browser
+### Artwork missing
 
-### Album art not showing
-- This is normal - just shows a music note icon
-- If you want it to work, ensure KaraFun API returns image URLs
+- Artwork hydration is best-effort and non-fatal
+- Queue remains usable without covers
 
-## 📦 Building for Production
+### Added by missing
 
-When ready to deploy on your kiosk machine:
+- KaraFun payload may omit user identity fields
+- UI intentionally hides this line when unavailable
 
-```bash
-npm run build
-```
+## Build Portable
 
-This creates an executable you can run on any Windows machine without needing Node.js.
+Use either wrapper or portable scripts:
 
-## 🎨 Customizing Colors
-
-Edit `style.css` to change the vibrant colors. Look for the `:root` section at the top:
-```css
-:root {
-  --primary: #ff1493;      /* Change these colors */
-  --secondary: #00d4ff;
-  /* etc */
-}
-```
-
-## 📞 Getting Help
-
-1. **Check the README.md** for detailed documentation
-2. **Check the console** - Press F12 to see errors
-3. **Review the configuration** - Make sure API_BASE_URL is correct
-
----
-
-**Ready to go!** Your KaraFun queue display is now running. 🎤
+- .\build-portable.ps1
+- .\build-portable.bat
+- .\portable\build-portable.ps1
+- .\portable\build-portable.bat

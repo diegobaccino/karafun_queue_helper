@@ -1,49 +1,371 @@
-// Configuration - Update these with your KaraFun server details
-const API_BASE_URL = 'http://localhost:8080'; // Change to your KaraFun server IP
-const POLL_INTERVAL = 3000; // Poll every 3 seconds
-const MAX_QUEUE_ITEMS = 8; // Maximum items to display before showing "more"
+const KARAFUN_HOST = 'https://www.karafun.com';
+const KARAFUN_WS_PROTOCOL = 'kcpj~v2+emuping';
+const MAX_QUEUE_ITEMS = 8;
 
-let currentSession = null;
-let lastQueueData = null;
+let socket = null;
+let currentSessionId = null;
+let currentNickname = null;
+let socketSessionId = null;
+let socketLogin = null;
+let hasReceivedQueue = false;
+let sessionModal = null;
+let sessionForm = null;
+let sessionInputEl = null;
+let nicknameInputEl = null;
+let outboundMessageId = 1;
+let defaultCoverUrl = '';
+let coverUrlBySongId = new Map();
 
-// Initialize the app
 document.addEventListener('DOMContentLoaded', () => {
   setupEventListeners();
-  generateQRCode();
-  startPolling();
   updateTime();
   setInterval(updateTime, 1000);
+  startSessionFlow();
 });
 
-// Setup event listeners
 function setupEventListeners() {
-  // Right-click to toggle fullscreen (handled by electron)
   document.addEventListener('contextmenu', (e) => {
     e.preventDefault();
-    // Electron main process handles this
+    if (window.electronAPI?.toggleFullscreen) {
+      window.electronAPI.toggleFullscreen();
+    }
   });
 
-  // Update time display
-  function updateTime() {
-    const now = new Date();
-    document.getElementById('time').textContent = now.toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit'
+  sessionModal = document.getElementById('session-modal');
+  sessionForm = document.getElementById('session-form');
+  sessionInputEl = document.getElementById('session-input');
+  nicknameInputEl = document.getElementById('nickname-input');
+
+  if (sessionForm) {
+    sessionForm.addEventListener('submit', handleSessionSubmit);
+  }
+
+  if (sessionModal) {
+    sessionModal.addEventListener('click', (event) => {
+      if (event.target?.dataset?.closeModal === 'true') {
+        closeSessionModal();
+      }
+    });
+  }
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      closeSessionModal();
+    }
+  });
+
+  const cancelButton = document.getElementById('cancel-session');
+  if (cancelButton) {
+    cancelButton.addEventListener('click', () => {
+      closeSessionModal();
+      updateStatus('No session selected', 'error');
+    });
+  }
+
+  const changeSessionButton = document.getElementById('change-session');
+  if (changeSessionButton) {
+    changeSessionButton.addEventListener('click', () => {
+      startSessionFlow();
     });
   }
 }
 
-// Generate QR Code for joining session
-function generateQRCode() {
+function startSessionFlow() {
+  openSessionModal();
+}
+
+function openSessionModal() {
+  if (!sessionModal || !sessionInputEl || !nicknameInputEl) {
+    updateStatus('Session form is not available', 'error');
+    return;
+  }
+
+  const defaultNickname = currentNickname || `QueueAdmin${Math.floor(Math.random() * 1000)}`;
+  sessionInputEl.value = currentSessionId || '';
+  nicknameInputEl.value = defaultNickname;
+  sessionModal.classList.remove('hidden');
+  sessionModal.setAttribute('aria-hidden', 'false');
+
+  const focusTarget = sessionInputEl.value ? nicknameInputEl : sessionInputEl;
+  focusTarget.focus();
+  focusTarget.select();
+}
+
+function closeSessionModal() {
+  if (!sessionModal) {
+    return;
+  }
+
+  sessionModal.classList.add('hidden');
+  sessionModal.setAttribute('aria-hidden', 'true');
+}
+
+function handleSessionSubmit(event) {
+  event.preventDefault();
+
+  const sessionValue = sessionInputEl?.value?.trim() || '';
+  const parsedSessionId = parseSessionId(sessionValue);
+  if (!parsedSessionId) {
+    updateStatus('Invalid session ID or URL', 'error');
+    sessionInputEl?.focus();
+    return;
+  }
+
+  const nicknameValue = nicknameInputEl?.value?.trim().slice(0, 16) || '';
+  if (!nicknameValue) {
+    updateStatus('Nickname cannot be empty', 'error');
+    nicknameInputEl?.focus();
+    return;
+  }
+
+  currentSessionId = parsedSessionId;
+  currentNickname = nicknameValue;
+
+  connectToSession(currentSessionId, currentNickname);
+  generateQRCode(currentSessionId);
+  updateSessionLabel(currentSessionId);
+  closeSessionModal();
+}
+
+function parseSessionId(input) {
+  const trimmed = String(input).trim();
+
+  if (/^\d{4,10}$/.test(trimmed)) {
+    return trimmed;
+  }
+
+  const match = trimmed.match(/karafun\.com\/(\d{4,10})\/?/i) || trimmed.match(/\/(\d{4,10})\/?$/);
+  return match ? match[1] : null;
+}
+
+async function connectToSession(sessionId, nickname) {
+  if (socket) {
+    socket.close();
+    socket = null;
+  }
+
+  socketSessionId = sessionId;
+  socketLogin = nickname;
+  hasReceivedQueue = false;
+  outboundMessageId = 1;
+
+  updateStatus(`Connecting to session ${sessionId}...`, 'info');
+
+  let settings;
   try {
-    // Dynamic URL based on current server
-    const qrUrl = `${API_BASE_URL}/remote`;
-    
-    // Create a simple QR code using a public API
-    // For production, use the 'qrcode' npm package instead
+    settings = await fetchSessionSettings(sessionId);
+  } catch (error) {
+    updateStatus(`Failed to load session: ${error?.message || 'Unknown error'}`, 'error');
+    return;
+  }
+
+  if (!settings?.kcs_url) {
+    updateStatus('Session connection URL not found', 'error');
+    return;
+  }
+
+  defaultCoverUrl = settings.image?.default || '';
+  coverUrlBySongId = new Map();
+
+  try {
+    socket = new WebSocket(settings.kcs_url, KARAFUN_WS_PROTOCOL);
+  } catch (error) {
+    updateStatus(`WebSocket Error: ${error?.message || 'Unable to open socket'}`, 'error');
+    return;
+  }
+
+  socket.addEventListener('open', () => {
+    updateStatus(`Connected to ${sessionId}. Authenticating...`, 'info');
+    sendSocketMessage('remote.UpdateUsernameRequest', { username: socketLogin });
+  });
+
+  socket.addEventListener('message', (event) => {
+    const message = parseJsonSafely(event.data);
+    if (!message) {
+      return;
+    }
+
+    if (message.type === 'core.PingRequest') {
+      sendRawMessage({ id: message.id, type: 'core.PingResponse', payload: {} });
+      return;
+    }
+
+    if (message.type === 'core.AuthenticatedEvent') {
+      updateStatus(`Connected as ${socketLogin} to ${socketSessionId}`, 'success');
+      return;
+    }
+
+    if (message.type === 'remote.UpdateUsernameResponse' || message.type === 'remote.UsernameUpdateEvent') {
+      updateStatus(`Session joined: ${socketSessionId}`, 'success');
+      return;
+    }
+
+    if (message.type === 'remote.StatusEvent') {
+      if (!hasReceivedQueue) {
+        updateStatus(`Session active: ${socketSessionId}`, 'success');
+      }
+      return;
+    }
+
+    if (message.type === 'remote.QueueEvent') {
+      hasReceivedQueue = true;
+      const items = message?.payload?.queue?.items || [];
+      const normalizedQueue = normalizeQueue(items);
+      const queueData = {
+        current: normalizedQueue[0] || null,
+        queue: normalizedQueue
+      };
+
+      updateCurrentSong(queueData);
+      updateQueueList(queueData);
+      updateStatus(`Live queue connected: ${socketSessionId}`, 'success');
+
+      hydrateQueueArtwork(items);
+      return;
+    }
+  });
+
+  socket.addEventListener('close', () => {
+    updateStatus('Disconnected from KaraFun session', 'error');
+  });
+
+  socket.addEventListener('error', () => {
+    updateStatus('Socket Error: Unable to connect to session', 'error');
+  });
+}
+
+function normalizeQueue(rawQueue) {
+  if (!Array.isArray(rawQueue)) {
+    return [];
+  }
+
+  return rawQueue.map((item = {}, index) => {
+    const songId = Number(item.song?.id?.id || item.songId || 0) || 0;
+    const title = item.title || item.songTitle || item.name || item.song?.title || 'Unknown Song';
+    const mappedBySongId = songId ? coverUrlBySongId.get(songId) : '';
+    const coverUrl = item.cover || item.coverUrl || item.img || item.song?.cover || item.song?.image || mappedBySongId || defaultCoverUrl;
+
+    return {
+      id: item.queueId || item.id || `${index}`,
+      title,
+      artist: item.artist || item.artistName || item.album || item.song?.artist || '',
+      singer: item.singer || item.options?.singer || item.login || item.username || item.addedBy || item.user?.username || '',
+      coverUrl
+    };
+  });
+}
+
+async function fetchSessionSettings(sessionId) {
+  const response = await fetch(`${KARAFUN_HOST}/${sessionId}/`, { cache: 'no-store' });
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}`);
+  }
+
+  const html = await response.text();
+  const match = html.match(/Settings\s*=\s*(\{[\s\S]*?\});/);
+  if (!match?.[1]) {
+    throw new Error('Session settings not found');
+  }
+
+  const settings = JSON.parse(match[1]);
+  return settings;
+}
+
+async function hydrateQueueArtwork(queueItems) {
+  const songIds = Array.from(new Set(
+    (queueItems || [])
+      .map((item) => Number(item?.song?.id?.id || item?.songId || 0) || 0)
+      .filter(Boolean)
+  ));
+
+  if (songIds.length === 0) {
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append('songIds', songIds.join(','));
+  formData.append('quizIds', '');
+  formData.append('communityIds', '');
+
+  try {
+    const response = await fetch(`${KARAFUN_HOST}/${socketSessionId}/?type=queueData`, {
+      method: 'POST',
+      body: formData,
+      cache: 'no-store'
+    });
+
+    if (!response.ok) {
+      return;
+    }
+
+    const details = await response.json();
+    if (!Array.isArray(details)) {
+      return;
+    }
+
+    let changed = false;
+    for (const item of details) {
+      const songId = Number(item?.songId || 0) || 0;
+      const imageUrl = item?.img || '';
+
+      if (!songId || !imageUrl) {
+        continue;
+      }
+
+      const existing = coverUrlBySongId.get(songId);
+      if (existing !== imageUrl) {
+        coverUrlBySongId.set(songId, imageUrl);
+        changed = true;
+      }
+    }
+
+    if (!changed) {
+      return;
+    }
+
+    const normalizedQueue = normalizeQueue(queueItems);
+    const queueData = {
+      current: normalizedQueue[0] || null,
+      queue: normalizedQueue
+    };
+
+    updateCurrentSong(queueData);
+    updateQueueList(queueData);
+  } catch (_error) {
+    // Ignore artwork hydration failures and keep existing UI state.
+  }
+}
+
+function parseJsonSafely(raw) {
+  try {
+    return JSON.parse(raw);
+  } catch (_error) {
+    return null;
+  }
+}
+
+function sendSocketMessage(type, payload) {
+  sendRawMessage({
+    id: outboundMessageId++,
+    type,
+    payload: payload || {}
+  });
+}
+
+function sendRawMessage(message) {
+  if (!socket || socket.readyState !== WebSocket.OPEN) {
+    return;
+  }
+
+  socket.send(JSON.stringify(message));
+}
+
+function generateQRCode(sessionId) {
+  try {
+    const joinUrl = `${KARAFUN_HOST}/${sessionId}/`;
     const qrElement = document.getElementById('qr-code');
     const qrImage = document.createElement('img');
-    qrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qrUrl)}`;
+    qrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(joinUrl)}`;
     qrImage.alt = 'QR Code';
     qrImage.className = 'qr-image';
     qrElement.innerHTML = '';
@@ -53,34 +375,13 @@ function generateQRCode() {
   }
 }
 
-// Start polling the KaraFun API
-function startPolling() {
-  fetchQueue();
-  setInterval(fetchQueue, POLL_INTERVAL);
-}
-
-// Fetch queue from API
-async function fetchQueue() {
-  try {
-    // Fetch queue data
-    const queueResponse = await fetch(`${API_BASE_URL}/remote/queue`);
-    if (!queueResponse.ok) throw new Error(`HTTP error! status: ${queueResponse.status}`);
-    
-    const queueData = await queueResponse.json();
-    lastQueueData = queueData;
-
-    // Update UI
-    updateCurrentSong(queueData);
-    updateQueueList(queueData);
-    updateStatus('Connected', 'success');
-
-  } catch (error) {
-    console.error('Failed to fetch queue:', error);
-    updateStatus(`Connection Error: ${error.message}`, 'error');
+function updateSessionLabel(sessionId) {
+  const sessionElement = document.getElementById('session-id');
+  if (sessionElement) {
+    sessionElement.textContent = sessionId;
   }
 }
 
-// Update current song display
 function updateCurrentSong(data) {
   const current = data.current || data.queue?.[0];
 
@@ -93,21 +394,19 @@ function updateCurrentSong(data) {
   }
 
   document.getElementById('current-title').textContent = current.title || 'Unknown Song';
-  document.getElementById('current-artist').textContent = current.artist || current.album || '';
-  document.getElementById('current-singer').textContent = `Sung by: ${current.singer || current.addedBy || 'Unknown'}`;
-  
-  // Set album cover if available
-  if (current.cover || current.coverUrl) {
-    document.getElementById('current-cover').src = current.cover || current.coverUrl;
+  document.getElementById('current-artist').textContent = current.artist || '';
+  document.getElementById('current-singer').textContent = current.singer ? `Sung by: ${current.singer}` : '';
+
+  if (current.coverUrl) {
+    document.getElementById('current-cover').src = current.coverUrl;
+  } else {
+    document.getElementById('current-cover').src = '';
   }
 }
 
-// Update queue list
 function updateQueueList(data) {
   const queueList = document.getElementById('queue-list');
   const queue = data.queue || [];
-
-  // Skip current song (it's displayed above)
   const upcomingQueue = queue.slice(1);
 
   if (upcomingQueue.length === 0) {
@@ -118,13 +417,10 @@ function updateQueueList(data) {
   let html = '';
   const displayCount = Math.min(upcomingQueue.length, MAX_QUEUE_ITEMS);
 
-  // Render queue items
   for (let i = 0; i < displayCount; i++) {
-    const song = upcomingQueue[i];
-    html += renderQueueItem(song, i + 1);
+    html += renderQueueItem(upcomingQueue[i], i + 1);
   }
 
-  // Show "more songs" message if queue is larger
   if (upcomingQueue.length > MAX_QUEUE_ITEMS) {
     const moreCount = upcomingQueue.length - MAX_QUEUE_ITEMS;
     html += `<div class="queue-more">+ ${moreCount} more ${moreCount === 1 ? 'song' : 'songs'} in queue</div>`;
@@ -133,12 +429,11 @@ function updateQueueList(data) {
   queueList.innerHTML = html;
 }
 
-// Render a single queue item
 function renderQueueItem(song, position) {
-  const cover = song.cover || song.coverUrl || '';
+  const cover = song.coverUrl || '';
   const title = song.title || 'Unknown Song';
-  const artist = song.artist || song.album || 'Unknown Artist';
-  const singer = song.singer || song.addedBy || 'Unknown';
+  const artist = song.artist || 'Unknown Artist';
+  const singer = song.singer || '';
 
   return `
     <div class="queue-item">
@@ -149,20 +444,18 @@ function renderQueueItem(song, position) {
       <div class="queue-details">
         <div class="queue-title">${escapeHtml(title)}</div>
         <div class="queue-artist">${escapeHtml(artist)}</div>
-        <div class="queue-singer">Added by: ${escapeHtml(singer)}</div>
+        ${singer ? `<div class="queue-singer">Added by: ${escapeHtml(singer)}</div>` : ''}
       </div>
     </div>
   `;
 }
 
-// Update status display
 function updateStatus(message, type = 'info') {
   const statusElement = document.getElementById('status');
   statusElement.textContent = message;
   statusElement.className = `status status-${type}`;
 }
 
-// Update time display
 function updateTime() {
   const now = new Date();
   document.getElementById('time').textContent = now.toLocaleTimeString('en-US', {
@@ -172,14 +465,12 @@ function updateTime() {
   });
 }
 
-// Escape HTML to prevent XSS
 function escapeHtml(text) {
   const div = document.createElement('div');
   div.textContent = text;
   return div.innerHTML;
 }
 
-// Listen for fullscreen toggle from Electron
 if (window.electronAPI) {
   window.electronAPI.onFullscreenToggled((isFullscreen) => {
     console.log('Fullscreen:', isFullscreen);

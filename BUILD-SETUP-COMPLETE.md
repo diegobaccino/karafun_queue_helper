@@ -1,5 +1,8 @@
 # 🎉 Build System Setup Complete!
 
+> Status: Historical setup summary. Runtime/API notes inside this document may not match the current v1 implementation.
+> Use INDEX.md to find current canonical docs.
+
 Your KaraFun Queue Display project now has a complete, production-ready build system for creating portable Windows executables.
 
 ## What Was Created

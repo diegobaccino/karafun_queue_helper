@@ -1,181 +1,94 @@
 # KaraFun Queue Display
 
-A fullscreen Electron app that displays the KaraFun karaoke queue on a vertical monitor with a vibrant, modern UI optimized for kiosk/display use.
+KaraFun Queue Display is an open-source Electron app that turns a live KaraFun session into a dedicated queue board for TVs and vertical monitors.
+
+It is built for karaoke hosts, bars, events, and home setups that want a public-facing screen showing:
+
+- what is singing now
+- what is up next
+- a QR code so guests can join instantly
+
+## Why this project exists
+
+The standard KaraFun mobile/web experience is great for participants, but hosts often need a persistent, room-visible queue display.
+This project provides that display as a standalone desktop app that can be customized and reused.
 
 ## Features
 
-✨ **Vibrant Design** - KaraFun-inspired color palette with bright purples, pinks, and cyans  
-🎵 **Real-time Queue Updates** - Automatically polls the queue every 3 seconds  
-📱 **QR Code** - Displays QR code for easy session joining  
-🎤 **Current Song Display** - Prominently shows the currently playing song with album art  
-📊 **Smart Queue Display** - Shows large queue items with "X more songs" if needed  
-🖥️ **Fullscreen Toggle** - Right-click to toggle between fullscreen and windowed mode  
-🔄 **Auto-refresh** - Constantly updates without manual refresh  
-📲 **Vertical Optimized** - Designed specifically for tall/vertical monitors  
-📍 **Song Metadata** - Displays song name, artist, album art, and who added it  
+- Join any live KaraFun session by session ID or URL
+- Live queue updates from KaraFun WebSocket events
+- Now Playing card plus upcoming queue list
+- QR code linked to the active session URL
+- Right-click fullscreen toggle for kiosk workflows
+- Artwork hydration using queueData song metadata
+- Graceful fallback when user identity fields are missing
 
-## Installation
+## Runtime Overview
 
-### Prerequisites
-- Node.js (v14 or higher)
-- npm or yarn
+1. User enters session ID/URL and nickname
+2. App requests `https://www.karafun.com/<session>/`
+3. App extracts `Settings` JSON from session HTML
+4. App opens WebSocket to `Settings.kcs_url` with subprotocol `kcpj~v2+emuping`
+5. App responds to `core.PingRequest` messages
+6. App sends `remote.UpdateUsernameRequest`
+7. App listens for `remote.QueueEvent` and status events
+8. App hydrates artwork via `POST /<session>/?type=queueData`
 
-### Setup
+See API.md for low-level details.
 
-1. **Navigate to project directory:**
-   ```bash
-   cd c:\Source\karafun_queue_helper
-   ```
+## Requirements
 
-2. **Install dependencies:**
-   ```bash
-   npm install
-   ```
+- Windows 10/11
+- Node.js 18+
+- npm
 
-3. **Configure API Endpoint:**
-   Edit `renderer.js` and update the API configuration at the top:
-   ```javascript
-   const API_BASE_URL = 'http://YOUR_KARAFUN_SERVER_IP:8080';
-   ```
-   Replace `YOUR_KARAFUN_SERVER_IP` with the actual IP address of your KaraFun machine.
+## Quick Start
 
-## Running the App
-
-### Development Mode
 ```bash
+npm install
 npm start
 ```
 
-### Build for Production
-```bash
-npm run build
-```
+On startup, enter:
 
-## Usage
+- Session ID (example: `272367`) or full KaraFun URL
+- Nickname for this display client
 
-- **Toggle Fullscreen:** Right-click anywhere in the app
-- **View Queue:** Scroll through the queue display
-- **QR Code:** Scan the QR code in the header to join the session
-- **Auto-refresh:** The queue automatically updates every 3 seconds
+## Build Portable EXE
 
-## Configuration
+Primary scripts:
 
-### API Endpoint
-The app fetches queue data from: `http://YOUR_SERVER:8080/remote/queue`
+- `portable/build-portable.ps1`
+- `portable/build-portable.bat`
 
-Expected JSON response format:
-```json
-{
-  "current": {
-    "title": "Song Title",
-    "artist": "Artist Name",
-    "singer": "Singer Name",
-    "cover": "http://url-to-cover.jpg"
-  },
-  "queue": [
-    {
-      "title": "Next Song",
-      "artist": "Artist Name",
-      "singer": "Singer Name",
-      "cover": "http://url-to-cover.jpg"
-    }
-  ]
-}
-```
+Root wrappers:
 
-### Display Settings
-Edit constants in `renderer.js`:
-- `POLL_INTERVAL` - How often to refresh (in milliseconds)
-- `MAX_QUEUE_ITEMS` - Maximum songs to display before showing "more" message
+- `build-portable.ps1`
+- `build-portable.bat`
 
-## Window Size
-Default window size is 1080x1920 (designed for vertical monitors). Modify in `main.js`:
-```javascript
-mainWindow = new BrowserWindow({
-  width: 1080,
-  height: 1920,
-  // ...
-});
-```
+## Public Reuse Notes
 
-## Keyboard Shortcuts
-- **Right-click** - Toggle fullscreen/window mode
-- **F12** - Open Developer Tools (in dev mode)
-
-## API Compatibility
-
-This app supports KaraFun Remote API. Ensure your KaraFun machine is:
-- Running with Remote API enabled
-- Accessible on the network at the configured IP address
-- Port 8080 is open
-
-## Troubleshooting
-
-### Connection Error
-- **Issue:** "Connection Error" status displayed
-- **Solution:** 
-  1. Check the `API_BASE_URL` in `renderer.js` is correct
-  2. Verify KaraFun server is running and accessible
-  3. Ensure network connectivity
-  4. Check firewall settings
-
-### Queue Not Updating
-- **Issue:** Queue shows "Loading queue..." indefinitely
-- **Solution:**
-  1. Open Developer Tools (F12) and check console for errors
-  2. Verify the API endpoint returns valid JSON
-  3. Check network requests in DevTools
-
-### QR Code Not Displaying
-- **Issue:** QR code box is empty
-- **Solution:**
-  1. The app uses a public QR generation API - ensure internet access
-  2. Check browser console for any error messages
-
-### Album Art Not Loading
-- **Issue:** Song covers showing as music note instead of artwork
-- **Solution:**
-  1. Verify the KaraFun API returns valid cover image URLs
-  2. Check that image URLs are accessible
-  3. Check CORS settings if using remote server
+- This project is not an official KaraFun product.
+- Upstream KaraFun protocol behavior may change over time.
+- Contributions are welcome when they preserve current session compatibility.
 
 ## Project Structure
 
-```
-karafun-queue-display/
-├── main.js              # Electron main process
-├── preload.js           # IPC bridge between main and renderer
-├── index.html           # UI layout
-├── renderer.js          # UI logic and API integration
-├── style.css            # Vibrant styling
-├── package.json         # Dependencies
-└── README.md            # This file
-```
+- `main.js`: Electron window lifecycle and fullscreen behavior
+- `preload.js`: secure IPC bridge
+- `renderer.js`: session protocol and UI state
+- `index.html`: application markup
+- `style.css`: visual system and responsive layout
 
-## Technologies
+## Documentation
 
-- **Electron** - Desktop app framework
-- **HTML5/CSS3** - Modern web UI
-- **JavaScript** - App logic
-- **Fetch API** - HTTP requests to KaraFun API
-
-## Performance Notes
-
-- The app polls every 3 seconds - adjust `POLL_INTERVAL` if needed
-- Large queue displays are limited to 8 items to maintain readability
-- CSS animations run smoothly on vertical monitors
-- Memory footprint is minimal (~150MB)
+- INDEX.md: documentation entrypoint
+- SETUP.md: day-to-day setup and troubleshooting
+- FIRST-TIME-SETUP.md: first machine onboarding
+- DEPLOYMENT.md: production and kiosk deployment
+- CHECKLIST.md: go-live validation
+- API.md: protocol notes
 
 ## License
 
-This project is built for personal use with KaraFun.
-
-## Support
-
-For issues with:
-- **KaraFun API:** Contact KaraFun support
-- **This app:** Check the troubleshooting section above
-
----
-
-Built with ❤️ for KaraFun queue displays
+MIT

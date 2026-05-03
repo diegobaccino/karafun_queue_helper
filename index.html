@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KaraFun Queue Display</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Header with QR Code -->
+    <div class="header">
+      <div class="header-content">
+        <div class="qr-section">
+          <h2>Join Karaoke</h2>
+          <div id="qr-code"></div>
+          <p class="qr-hint">Scan to join</p>
+        </div>
+        <div class="header-title">
+          <h1>🎤 KaraFun Queue</h1>
+          <p class="hint">Right-click to toggle fullscreen</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Current Song Section -->
+    <div class="current-song-section">
+      <div id="current-song" class="current-song">
+        <div class="current-label">Now Playing</div>
+        <div class="current-album">
+          <img id="current-cover" src="" alt="Album Cover" class="album-cover">
+        </div>
+        <div class="current-info">
+          <h2 id="current-title">Waiting for queue...</h2>
+          <p id="current-artist" class="artist"></p>
+          <p id="current-singer" class="singer"></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Divider -->
+    <div class="divider"></div>
+
+    <!-- Queue Section -->
+    <div class="queue-section">
+      <h2 class="queue-title">Coming Up</h2>
+      <div id="queue-list" class="queue-list">
+        <div class="loading">Loading queue...</div>
+      </div>
+    </div>
+
+    <!-- Status Footer -->
+    <div class="footer">
+      <span id="status" class="status">Connecting...</span>
+      <span id="time" class="time"></span>
+    </div>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>

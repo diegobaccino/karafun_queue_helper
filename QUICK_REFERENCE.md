@@ -20,7 +20,7 @@ npm start
 ## Build Portable
 
 ```bash
-.\portable\build-portable.ps1
+npm run build-portable
 ```
 
 or

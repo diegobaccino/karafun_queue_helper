@@ -20,8 +20,29 @@ This project provides that display as a standalone desktop app that can be custo
 - Now Playing card plus upcoming queue list
 - QR code linked to the active session URL
 - Right-click fullscreen toggle for kiosk workflows
+- Session control from menu bar (`Session > Change Session` and `Session > Reconnect Now`)
+- Auto-reconnect recovery when KaraFun fetch or socket connectivity drops
+- Immediate reconnect attempt on disconnect plus stale-connection watchdog recovery
+- Idle screensaver mode after 30 seconds with no playing song and no queued items
+- Idle screensaver also activates when playback remains paused for more than 30 seconds
+- Screensaver quote rotation every minute from a managed quote file
+- Queue layout that adapts to screen height without requiring scrollbars
+- On Deck / Get ready queue cue when timing data is present in session events
 - Artwork hydration using queueData song metadata
 - Graceful fallback when user identity fields are missing
+
+## Display Principles
+
+- Optimized for vertical monitors with queue visibility as the primary priority
+- Top row keeps the Now Playing and QR content compact so the queue gets most of the screen
+- QR code stays on the same top row as the current song
+- Empty queue copy is intentionally explicit: `No items on the queue`
+
+## Limitations
+
+- KaraFun session payloads do not always expose complete playback timing, so the `On Deck` cue is best-effort.
+- Session metadata can omit singer identity fields, so `Added by` is hidden when KaraFun does not provide it.
+- This project depends on KaraFun's current web-session protocol and may need updates if upstream behavior changes.
 
 ## Runtime Overview
 
@@ -33,6 +54,8 @@ This project provides that display as a standalone desktop app that can be custo
 6. App sends `remote.UpdateUsernameRequest`
 7. App listens for `remote.QueueEvent` and status events
 8. App hydrates artwork via `POST /<session>/?type=queueData`
+9. App retries connection automatically after recoverable network or WebSocket failures
+10. App forces reconnect when the socket appears stalled without incoming events
 
 See API.md for low-level details.
 
@@ -56,15 +79,14 @@ On startup, enter:
 
 ## Build Portable EXE
 
-Primary scripts:
+Recommended command:
+
+- `npm run build-portable`
+
+Use the scripts in the portable folder:
 
 - `portable/build-portable.ps1`
 - `portable/build-portable.bat`
-
-Root wrappers:
-
-- `build-portable.ps1`
-- `build-portable.bat`
 
 ## Public Reuse Notes
 
@@ -79,6 +101,8 @@ Root wrappers:
 - `renderer.js`: session protocol and UI state
 - `index.html`: application markup
 - `style.css`: visual system and responsive layout
+- `assets/screensaver-quotes.js`: managed quote lines for idle screensaver mode
+- `assets/karafun-logo.svg`: local logo asset used by the screensaver
 
 ## Documentation
 

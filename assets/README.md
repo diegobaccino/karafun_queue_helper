@@ -18,6 +18,20 @@ The following icon files can be placed here for the build process:
 - **Format:** PNG with transparency
 - **Purpose:** Alternative icon format for builds
 
+### Screensaver Logo
+**File:** `karafun-logo.svg`
+- **Source:** Downloaded from public KaraFun web assets CDN
+- **Purpose:** Center logo displayed in idle screensaver mode
+
+## Screensaver Quotes
+
+**File:** `screensaver-quotes.js`
+
+- Stores rotating quote lines used by the idle screensaver overlay.
+- Keep entries as plain strings in `window.SCREENSAVER_QUOTES`.
+- The renderer rotates quotes every minute while screensaver mode is active.
+- Hosts can update wording in this file without changing application logic.
+
 ## Creating Icons
 
 ### Option 1: Use Online Tools

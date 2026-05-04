@@ -27,12 +27,12 @@ portable/
 
 3. **Build the Executable**
    ```bash
-   npm run build
+   npm run build-portable
    ```
    
    Or use the helper scripts:
-   - **Windows batch**: Double-click `build-portable.bat`
-   - **PowerShell**: Run `.\build-portable.ps1`
+   - **Windows batch**: Double-click `portable\build-portable.bat`
+   - **PowerShell**: Run `.\portable\build-portable.ps1`
 
 4. **Output**
    - Built executable appears here: `portable/KaraFun Queue Display-v1.0.0.exe`
@@ -92,7 +92,7 @@ copy SETUP.md KaraFun-Queue-Display-Release\
 ### "electron-builder not found"
 ```bash
 npm install --save-dev electron-builder
-npm run build
+npm run build-portable
 ```
 
 ### Build is slow
@@ -143,8 +143,8 @@ karafun-queue-display/
 │   └── KaraFun Queue Display-*.exe     ← Built executable
 ├── dist/                               ← Unpacked files (temporary)
 ├── node_modules/                       ← Dependencies
-├── build-portable.bat                  ← Windows build script
-├── build-portable.ps1                  ← PowerShell build script
+├── portable/build-portable.bat         ← Windows build script
+├── portable/build-portable.ps1         ← PowerShell build script
 ├── BUILD-PORTABLE.md                   ← Detailed build guide
 ├── main.js
 ├── renderer.js
@@ -158,9 +158,9 @@ karafun-queue-display/
 
 ### Batch Script (Windows)
 ```bash
-# Double-click build-portable.bat
+# Double-click portable/build-portable.bat
 # Or run from command prompt
-build-portable.bat
+portable\build-portable.bat
 ```
 
 Automatically:
@@ -172,11 +172,11 @@ Automatically:
 ### PowerShell Script
 ```powershell
 # Run from PowerShell
-.\build-portable.ps1
+.\portable\build-portable.ps1
 
 # If access denied, allow scripts:
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-.\build-portable.ps1
+.\portable\build-portable.ps1
 ```
 
 ## Future Builds
@@ -187,7 +187,7 @@ To build future versions:
 2. **Update configuration** in `renderer.js` if needed
 3. **Run build script**:
    ```bash
-   npm run build
+   npm run build-portable
    ```
 4. **New executable** appears in `portable/`
 

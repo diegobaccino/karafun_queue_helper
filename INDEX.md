@@ -16,8 +16,6 @@ Use this page as the documentation entrypoint.
 
 - portable/build-portable.ps1: primary PowerShell build script
 - portable/build-portable.bat: primary batch build script
-- build-portable.ps1: root wrapper
-- build-portable.bat: root wrapper
 
 ## Historical Docs
 

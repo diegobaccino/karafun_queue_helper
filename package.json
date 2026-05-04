@@ -8,6 +8,7 @@
   "scripts": {
     "start": "electron .",
     "dev": "electron . --debug",
+    "build-portable": "powershell -NoProfile -ExecutionPolicy Bypass -File .\\portable\\build-portable.ps1",
     "build": "electron-builder --win portable",
     "build-installer": "electron-builder --win nsis portable",
     "build-all": "electron-builder --win"

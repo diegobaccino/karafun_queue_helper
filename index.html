@@ -7,6 +7,17 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <div id="screensaver" class="screensaver hidden" aria-hidden="true">
+    <div class="screensaver-background"></div>
+    <div class="screensaver-content">
+      <img src="assets/karafun-logo.svg" alt="KaraFun logo" class="screensaver-logo" id="screensaver-logo" onerror="this.src='assets/icon.png'">
+      <h1 class="screensaver-title">Queue Is Quiet. Let's Fix That.</h1>
+      <div id="screensaver-qr" class="screensaver-qr"></div>
+      <p class="screensaver-hint">Scan and add your next anthem</p>
+      <p id="screensaver-quote" class="screensaver-quote">Mic check... your next song could be legendary.</p>
+    </div>
+  </div>
+
   <div class="container">
     <!-- Top row: QR + current song -->
     <div class="header">
@@ -14,12 +25,15 @@
         <div id="current-song" class="current-song">
           <div class="current-label">Now Playing</div>
           <div class="current-album">
-            <img id="current-cover" src="" alt="Album Cover" class="album-cover">
+            <img id="current-cover" src="" alt="Album Cover" class="album-cover hidden">
           </div>
           <div class="current-info">
             <h2 id="current-title">Waiting for queue...</h2>
             <p id="current-artist" class="artist"></p>
             <p id="current-singer" class="singer"></p>
+          </div>
+          <div id="playback-indicator" class="playback-indicator" aria-label="Playback indicator" aria-hidden="true">
+            <span></span><span></span><span></span><span></span>
           </div>
         </div>
 
@@ -28,7 +42,6 @@
           <div id="qr-code"></div>
           <p class="qr-hint">Scan to join</p>
           <p class="session-line">Session: <span id="session-id">Not connected</span></p>
-          <button id="change-session" class="session-button" type="button">Change Session</button>
         </div>
       </div>
     </div>
@@ -70,6 +83,7 @@
     </div>
   </div>
 
+  <script src="assets/screensaver-quotes.js"></script>
   <script src="renderer.js"></script>
 </body>
 </html>

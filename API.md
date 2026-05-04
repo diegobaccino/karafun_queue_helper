@@ -70,10 +70,20 @@ The app maps img by songId and re-renders queue/current card when updates arrive
 ## Error States
 
 - Invalid session input: prompt user to correct ID/URL
-- Session page fetch fails: show HTTP error state
+- Session page fetch fails: show error state and retry automatically for recoverable failures
 - Missing kcs_url: stop with status message
-- WebSocket close/error: show disconnected/error status
+- WebSocket close/error: show disconnected/error status and retry automatically
 - Artwork fetch failure: ignored (non-fatal)
+
+## Playback Timing Note
+
+`remote.StatusEvent` payloads may contain playback timing fields, but KaraFun does not appear to guarantee a single stable timing shape in the current observed protocol.
+
+The renderer therefore treats timing as best-effort:
+
+- It looks for likely remaining-time or elapsed-time fields in the status payload.
+- It only enables the `On Deck` / `Get ready` queue cue when timing can be derived safely.
+- Missing timing data should not block queue rendering or session operation.
 
 ## Legacy Note
 

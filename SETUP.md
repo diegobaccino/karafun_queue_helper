@@ -77,9 +77,11 @@ Expected behavior after connecting:
 
 ## Build Portable
 
-Use either wrapper or portable scripts:
+Preferred:
 
-- .\build-portable.ps1
-- .\build-portable.bat
+- npm run build-portable
+
+Alternative direct scripts:
+
 - .\portable\build-portable.ps1
 - .\portable\build-portable.bat

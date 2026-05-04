@@ -20,8 +20,11 @@ The following icon files can be placed here for the build process:
 
 ### Screensaver Logo
 **File:** `karafun-logo.svg`
-- **Source:** Downloaded from public KaraFun web assets CDN
+- **Source:** Vendored local copy committed in this repository
 - **Purpose:** Center logo displayed in idle screensaver mode
+- **Packaging:** Included in Electron build output via `build.files` so the logo works offline and in portable EXE builds
+
+If you replace this file, keep the same filename (`karafun-logo.svg`) unless you also update `index.html`.
 
 ## Screensaver Quotes
 
@@ -76,4 +79,4 @@ assets/
 
 ---
 
-The build process automatically includes files from this folder in the executable.
+The build process includes runtime assets from this folder in the executable (see `package.json > build.files`).

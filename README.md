@@ -26,6 +26,7 @@ This project provides that display as a standalone desktop app that can be custo
 - Idle screensaver mode after 30 seconds with no playing song and no queued items
 - Idle screensaver also activates when playback remains paused for more than 30 seconds
 - Screensaver quote rotation every minute from a managed quote file
+- Screensaver logo loaded from a bundled local asset (`assets/karafun-logo.svg`) so it renders reliably in packaged builds
 - Queue layout that adapts to screen height without requiring scrollbars
 - On Deck / Get ready queue cue when timing data is present in session events
 - Artwork hydration using queueData song metadata

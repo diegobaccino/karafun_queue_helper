@@ -159,6 +159,7 @@ button {
 
 .header-content {
   display: flex;
+  flex-wrap: nowrap;
   align-items: stretch;
   height: 100%;
   gap: 14px;
@@ -326,6 +327,7 @@ button {
   align-items: center;
   gap: 16px;
   flex: 1;
+  min-width: 0;
   background: var(--gradient-secondary);
   min-height: 0;
   padding: 14px 16px 12px;
@@ -686,11 +688,33 @@ button {
 
   .header-content {
     flex-direction: row;
+    flex-wrap: nowrap;
     align-items: stretch;
   }
 
   .qr-section {
-    width: 168px;
+    width: 156px;
+    min-width: 156px;
+    padding: 8px;
+    gap: 6px;
+  }
+
+  #qr-code {
+    min-width: 94px;
+    min-height: 94px;
+  }
+
+  .qr-image {
+    width: 94px;
+    height: 94px;
+  }
+
+  .qr-section h2 {
+    font-size: 0.9rem;
+  }
+
+  .session-line {
+    font-size: 0.76rem;
   }
 
   .current-song {
@@ -724,7 +748,7 @@ button {
 }
 
 
-@media (max-width: 760px) {
+@media (max-width: 620px) {
   .header-content {
     flex-direction: column;
   }
